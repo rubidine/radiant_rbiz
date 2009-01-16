@@ -1,0 +1,478 @@
+--- 
+- - /cart/
+  - body: This is the container for the cart pages
+- - /customer/
+  - body: This is the container for the cart pages
+- - /cart/index/:
+      :published: true
+  - body: Go to /cart/show to see your cart
+- - /cart/tag/:
+      :published: true
+  - body: |
+      Tag pages should be of type TagPage.  Or else you need to wrap a 
+      before_filter to set the @tags and @related_tags in extenion_renders_radiant
+
+- - /cart/show/:
+      :published: true
+  - body: |
+      <r:if_flash>
+        <p class="flash">
+          <r:flash:each>
+            <div class="<r:key />"> <r:message /> </div>
+          </r:flash:each>
+        </p>
+      </r:if_flash>
+      
+      <div class="cart">
+      <br/>
+      <r:cart>
+        <r:unless_empty>
+          <form action="update_quantities" method="post">  
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <th>Quantity</th>
+                <th>Item</th>
+                <th class="right">Unit-Price</th>
+                <th class="right">Amount</th>
+              </tr>
+      
+              <r:line_item:each>
+                <tr>
+                  <td>
+                    <r:if_custom>
+                      <r:quantity />
+                    </r:if_custom>
+                    <r:unless_custom>
+                      <input id="quantities_<r:id />" name="quantities[<r:id/>]" size="3" type="text" value="<r:quantity/>" />
+                    </r:unless_custom>
+                  </td>
+                  <td>
+                    <r:name />
+                  </td>
+                  <td class="right">
+                    <r:individual_price />
+                  </td>
+                  <td class="right">
+                    <r:price />
+                  </td>
+                </tr>
+              </r:line_item:each>
+              <tr>
+                <td colspan="3">
+                  <div align="right">
+                    <strong>Subtotal</strong>
+                  </div>
+                </td>
+                <td class="right"> <r:total /> </td>
+              </tr>
+            </table>
+            <br/>
+            <input name="commit" type="submit" value="Update Quantities" />
+            <input name="commit" type="submit" value="Checkout" />
+          </form>
+      
+        </r:unless_empty>
+      
+        <r:if_empty>
+          <h3> Your cart is empty </h3>
+          <a href="/">Continue Shopping</a>
+        </r:if_empty>
+      </r:cart>
+      </div>
+
+- - /cart/billing_address/:
+      :published: true
+  - body: |
+      <h3>Billing Address</h3>
+      <r:if_flash>
+        <p class="flash">
+          <r:flash:each>
+            <div class="<r:key />"> <r:message /> </div>
+          </r:flash:each>
+        </p>
+      </r:if_flash>
+      
+      <r:customer:each_address>
+        <r:address>
+          <p>
+            <r:name /> <br/>
+            <r:street /> <br/>
+            <r:city />, <r:state /> <r:zip /> <br />
+            <a href="/cart/bill_to_existing/<r:id />"> Bill Here </a>
+          </p>
+        </r:address>
+      </r:customer:each_address>
+      
+      <br/>
+      <br/>
+      
+      <div class="cart">
+      <form action="/cart/billing_address_post" method="post">
+      <table cellpadding="0" cellspacing="0" border="0" class="cleartable">
+        <tbody>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_display_name">Name</label></td>
+      
+            <td><input id="address_display_name" name="address[display_name]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_phone">Phone Number</label></td>
+            <td><input id="address_phone" name="address[phone]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_street">Street Address</label></td>
+      
+            <td><input id="address_street" name="address[street]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_city">City</label></td>
+            <td><input id="address_city" name="address[city]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_state">State</label></td>
+      
+            <td>
+              <r:address:state_dropdown />
+            </td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_zip">Zip</label></td>
+            <td><input type="text" name="address[zip]" id="address_zip" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px">&nbsp;</td>
+            <td><input type="submit" value="Continue to Review Purchase" /></td>
+          </tr>
+        </tbody>
+      </table>
+      </form>
+      </div>
+
+- - /cart/shipping_address/:
+      :published: true
+  - body: |
+      <h3>Shipping Address</h3>
+      
+      <r:if_flash>
+        <p class="flash">
+          <r:flash:each>
+            <div class="<r:key />"> <r:message /> </div>
+          </r:flash:each>
+        </p>
+      </r:if_flash>
+      
+      <r:customer:each_address>
+        <p>
+          <r:address:name /> <br/>
+          <r:address:street /> <br/>
+          <r:address:city />, <r:address:state /> <r:address:zip /> <br />
+          <a href="/cart/ship_to_existing/<r:address:id />"> Ship Here </a>
+        </p>
+      </r:customer:each_address>
+      
+      <br/>
+      <br/>
+      
+      <div class="cart">
+      <form action="/cart/shipping_address_post" method="post">
+      <table cellpadding="0" cellspacing="0" border="0" class="cleartable">
+        <tbody>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_display_name">Name</label></td>
+      
+            <td><input id="address_display_name" name="address[display_name]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_phone">Phone Number</label></td>
+            <td><input id="address_phone" name="address[phone]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_street">Street Address</label></td>
+      
+            <td><input id="address_street" name="address[street]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_city">City</label></td>
+            <td><input id="address_city" name="address[city]" size="30" type="text" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_state">State</label></td>
+      
+            <td>
+              <r:address:state_dropdown />
+            </td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px"><label for="address_zip">Zip</label></td>
+            <td><input type="text" name="address[zip]" id="address_zip" /></td>
+          </tr>
+          <tr>
+            <td class="right" style="width: 125px">&nbsp;</td>
+            <td><input type="submit" value="Continue to Billing" /></td>
+          </tr>
+        </tbody>
+      </table>
+      </form>
+      </div>
+
+- - /shop:
+      :published: true
+      :class_name: TagPage
+  - body: |
+      <r:product:each from_tags="1">
+        <r:name /><br/>
+      </r:product:each>
+      <r:product:paginate />
+- - /products: 
+      :published: true
+      :class_name: ProductPage
+  - body: |
+      <r:product>
+        <h1><r:name/></h1>
+      
+        <p>
+          SKU: <r:sku/>
+        </p>
+      
+        <p>
+          <r:description/>
+        </p>
+      
+        <p>
+          Price: $<r:price/>
+        </p>
+      
+        <notextile>
+          <r:if_options>
+            <form action="/cart/add_to_cart/<r:id />">
+              <r:option_dropdowns/>
+              <span id="disabled_button_<r:id />" style="cursor:not-allowed">
+                <img src="/images/cart/inactivecart.jpg" alt="Select product options before purchasing" />
+              </span>
+              <span id="enabled_button_<r:id />" style="display: none;">
+                <input type="submit" style="background: url(/images/cart/addtocart.jpg); width: 109px; height: 28px; border: 0; margin: 0; padding: 0;" value="" />
+              </span>
+            </form>
+          </r:if_options>
+        </notextile>
+      
+        <r:unless_options>
+          <a href="<r:add_to_cart/>">
+            <img src="/images/cart/addtocart.jpg" alt="Add this product to my cart" />
+          </a>
+        </r:unless_options>
+      </r:product>
+
+- - /customer/login/:
+      :published: true
+  - body: |
+      <h3>Login / Register</h3>
+      <r:if_flash>
+       <p class="flash">
+         <r:flash:each>
+           <div class="<r:key />"> <r:message /> </div>
+         </r:flash:each>
+       </p>
+      </r:if_flash>
+      <p>
+      Please fill out the form below.  If you are a returning customer, you should
+      enter the information just as you did during your first visit.  If you are a
+      first-time customer, a new account will automatically be created for you.
+      <br/><br/>
+      This account will be used to keep your address information private and allow
+      us to contact you if there are problems with your order or payment processing.
+      </p>
+      
+      <div id="flashes">
+      
+      </div>
+      
+      <form action="/customer/login_post" method="post">
+       <p>
+       <label for="user_email">Email</label>
+       <br/>
+       <input class="bordered" id="user_email" name="user[email]" size="30" type="text" />
+       <br/>
+       <br/>
+      
+       <label for="user_passphrase">Password</label>
+       <br/>
+       <input class="bordered" id="user_passphrase" name="user[passphrase]" size="30" type="password" />
+       </p>
+       <div class="buttons">
+       <input class="buttonBlue" name="commit" type="submit" value="Login / Register" />
+       </div>
+      </form>
+      
+      <p>
+      <a href="/customer/password_request">Forgotten Password?</a>
+      </p>
+
+- - /cart/finalize/:
+      :published: true
+  - body: |
+      <r:if_flash>
+        <p class="flash">
+          <r:flash:each>
+            <div class="<r:key />"> <r:message /> </div>
+          </r:flash:each>
+        </p>
+      </r:if_flash>
+      
+      <r:cart>
+        <table cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <th>Quantity</th>
+            <th>Item</th>
+            <th class="right">Unit-Price</th>
+            <th class="right">Amount</th>
+          </tr>
+      
+          <r:line_item:each>
+            <tr>
+              <td>
+                <r:quantity/>
+              </td>
+              <td>
+                <r:name />
+              </td>
+              <td class="right">
+                <r:individual_price />
+              </td>
+              <td class="right">
+                <r:price />
+              </td>
+            </tr>
+          </r:line_item:each>
+          <tr>
+            <td colspan="3">
+              <div align="right">
+                <strong>Subtotal</strong>
+              </div>
+            </td>
+            <td class="right"> <r:total /> </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <div align="right">
+                <strong>Shipping</strong>
+              </div>
+            </td>
+            <td class="right"> <r:shipping /> </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <div align="right">
+                <strong>Tax</strong>
+              </div>
+            </td>
+            <td class="right"> <r:tax /> </td>
+          </tr>
+          <r:coupons:each>
+            <tr>
+              <td colspan="3">
+                <div style="text-align:right">
+                  <strong>Coupon: <r:code /></strong>
+                </div>
+              </td>
+              <td class="right"> -<r:discount /> </td>
+            </tr>
+          </r:coupons:each>
+          <tr>
+            <td colspan="3">
+              <div align="right">
+                <strong>Total</strong>
+              </div>
+            </td>
+            <td class="right"> <r:grand_total /> </td>
+          </tr>
+        </table>
+      </r:cart>
+      <a href="/cart/show">Change Quantities</a>
+      
+      <r:cart:if_can_add_coupon>
+      <form action="/cart/add_coupon" method="post">
+      <input type="text" name="coupon[code]" />
+      <input type="submit" value="Add Coupon" />
+      </form>
+      </r:cart:if_can_add_coupon>
+      
+      <h4>Ship To:</h4>
+      <r:cart:shipping_address>
+        <r:address>
+          <p>
+            <r:address:name /> <br/>
+            <r:address:street /> <br/>
+            <r:address:city />, <r:address:state /> <r:address:zip />
+          </p>
+        </r:address>
+      </r:cart:shipping_address>
+      <a href="/cart/shipping_address">Change Address</a>
+      
+      <h4>Bill To:</h4>
+      <r:cart:billing_address>
+        <r:address>
+          <p>
+            <r:address:name /> <br/>
+            <r:address:street /> <br/>
+            <r:address:city />, <r:address:state /> <r:address:zip /> <br />
+          </p>
+        </r:address>
+      </r:cart:billing_address>
+      <a href="/cart/billing_address">Change Address</a>
+      
+      
+      <h3>Payment Information</h3>
+      <form action="/cart/finalize_post" method="post">
+        <p>
+      <label for="payment_name">Name on card</label>
+      <br/>
+      <input id="payment_name" type="text" size="30" name="payment[name]"/>
+      <br/>
+      <br/>
+      <label for="payment_number">Card Number</label>
+      <br/>
+      <input id="payment_number" type="text" size="30" name="payment[number]"/>
+      <br/>
+      <br/>
+      <label for="payment_month">Expiration Date</label>
+      <br/>
+      <select id="payment_month" name="payment[month]">
+      <option value="1"> 1</option>
+      <option value="2"> 2</option>
+      <option value="3"> 3</option>
+      <option value="4"> 4</option>
+      <option value="5"> 5</option>
+      <option value="6"> 6</option>
+      <option value="7"> 7</option>
+      <option value="8"> 8</option>
+      <option value="9"> 9</option>
+      <option value="10">10</option>
+      <option value="11">11</option>
+      <option value="12">12</option>
+      </select>
+      /
+      <select id="payment_year" name="payment[year]">
+      <option value="2007">2007</option>
+      <option value="2008">2008</option>
+      <option value="2009">2009</option>
+      <option value="2010">2010</option>
+      <option value="2011">2011</option>
+      <option value="2012">2012</option>
+      <option value="2013">2013</option>
+      <option value="2014">2014</option>
+      </select>
+      <br/>
+      <br/>
+      <label for="payment_verification_value">Verification Code</label>
+      <br/>
+      <input id="payment_verification_value" type="text" size="30" name="payment[verification_value]"/>
+      <br/>
+      <br/>
+      </p>
+          <label for="cart_comments">Comments / Special Instructions</label><br/>
+          <textarea cols="30" id="cart_comments" name="cart[comments]" rows="4"><r:cart:comments /></textarea><br/>
+          <input name="commit" type="submit" value="Finalize" />
+        </p>
+      </form>
+
