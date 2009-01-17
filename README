@@ -18,12 +18,14 @@ _Getting Started_
   git submodule init
   git submodule update
 
-5. There are a couple of initializers that need to be copied over from radiant_rbiz to the radiant instance, so run the rake task.
+5. Create your database and run migrations for radiant, radiant_rbiz and rbiz
   cd ../../..
-  rake radiant:extensions:radiant_rbiz:initializers
-
-6. Create your database and run migrations for radiant, radiant_rbiz and rbiz
   mysqladmin -u root create blah_development
   rake db:bootstrap
   rake radiant:extensions:radiant_rbiz:migrate
   rake cart:migrate
+
+6. There are a couple of initializers that need to be copied over from radiant_rbiz to the radiant instance, so run the rake task.
+  rake radiant:extensions:radiant_rbiz:initializers
+
+
