@@ -1,3 +1,15 @@
 [submodule "vendor/plugins/rbiz"]
 	path = vendor/plugins/rbiz
 	url = git://github.com/rubidine/rbiz.git
+[submodule "vendor/plugins/acts_as_list"]
+	path = vendor/plugins/acts_as_list
+	url = git://github.com/rails/acts_as_list.git
+[submodule "vendor/plugins/fixed_point_field"]
+	path = vendor/plugins/fixed_point_field
+	url = git://github.com/rubidine/fixed_point_field.git
+[submodule "vendor/plugins/unique_tuple"]
+	path = vendor/plugins/unique_tuple
+	url = git://github.com/rubidine/unique_tuple.git
+[submodule "vendor/plugins/will_paginate"]
+	path = vendor/plugins/will_paginate
+	url = git://github.com/mislav/will_paginate.git
