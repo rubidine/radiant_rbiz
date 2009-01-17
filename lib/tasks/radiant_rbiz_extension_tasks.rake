@@ -12,6 +12,18 @@ namespace :radiant do
         end
       end
       
+      desc "Copies initializers of the Radiant RBiz to the instance config/initializers directory."
+      task :initializers => :environment do
+        is_git_or_dir = proc {|path| path =~ /\.git/ || File.directory?(path) }
+        mkdir_p RAILS_ROOT + '/config/initializers'
+        Dir[RadiantRbizExtension.root + "/lib/tasks/initializers/*"].reject(&is_git_or_dir).each do |file|
+          path = file.sub(RadiantRbizExtension.root, '')
+          directory = File.dirname(path)
+          puts "Copying #{path}..."
+          cp file, RAILS_ROOT + '/config/initializers' 
+        end
+      end  
+
       desc "Copies public assets of the Radiant RBiz to the instance public/ directory."
       task :update => :environment do
         is_git_or_dir = proc {|path| path =~ /\.git/ || File.directory?(path) }
