@@ -1,4 +1,30 @@
 module ActiveRecord
+  class Base
+	  # Updates the associated record with values matching those of the instance attributes.
+	  # Returns the number of affected rows.
+	  def update(attribute_names = @attributes.keys)
+		quoted_attributes = attributes_with_quotes(false, false, attribute_names)
+		return 0 if quoted_attributes.empty?
+		connection.update(
+		  "UPDATE #{self.class.quoted_table_name} " +
+		  "SET #{quoted_comma_pair_list(connection, quoted_attributes)} " +
+		  "WHERE #{connection.quote_column_name(self.class.primary_key)} = #{quote_value(id)}",
+		  "#{self.class.name} Update"
+		)
+	  end
+      # Returns a copy of the attributes hash where all the values have been safely quoted for use in
+     # an SQL statement.
+     def attributes_with_quotes(include_primary_key = true, include_readonly_attributes = true, attribute_names = @attributes.keys)
+       quoted = {}
+       connection = self.class.connection
+       attribute_names.each do |name|
+         if column = column_for_attribute(name)
+           quoted[name] = connection.quote(read_attribute(name), column) unless !include_primary_key && column.primary
+         end
+       end
+       include_readonly_attributes ? quoted : remove_readonly_attributes(quoted)
+     end
+  end
   # Track unsaved attribute changes.
   #
   # A newly instantiated object is unchanged:
@@ -40,11 +66,11 @@ module ActiveRecord
       base.alias_method_chain :save,            :dirty
       base.alias_method_chain :save!,           :dirty
       base.alias_method_chain :update,          :dirty
-
+ 
       base.superclass_delegating_accessor :partial_updates
-      base.partial_updates = false
+      base.partial_updates = true
     end
-
+ 
     # Do any attributes have unsaved changes?
     #   person.changed? # => false
     #   person.name = 'bob'
@@ -52,7 +78,7 @@ module ActiveRecord
     def changed?
       !changed_attributes.empty?
     end
-
+ 
     # List of attributes with unsaved changes.
     #   person.changed # => []
     #   person.name = 'bob'
@@ -60,7 +86,7 @@ module ActiveRecord
     def changed
       changed_attributes.keys
     end
-
+ 
     # Map of changed attrs => [original value, new value]
     #   person.changes # => {}
     #   person.name = 'bob'
@@ -68,56 +94,59 @@ module ActiveRecord
     def changes
       changed.inject({}) { |h, attr| h[attr] = attribute_change(attr); h }
     end
-
-
+ 
     # Clear changed attributes after they are saved.
     def save_with_dirty(*args) #:nodoc:
       save_without_dirty(*args)
     ensure
       changed_attributes.clear
     end
-
+ 
     # Clear changed attributes after they are saved.
     def save_with_dirty!(*args) #:nodoc:
       save_without_dirty!(*args)
     ensure
       changed_attributes.clear
     end
-
+ 
+    def self.partial_updates?
+      @partial_updates
+    end
+ 
     private
       # Map of change attr => original value.
       def changed_attributes
         @changed_attributes ||= {}
       end
-
+ 
       # Handle *_changed? for method_missing.
       def attribute_changed?(attr)
         changed_attributes.include?(attr)
       end
-
+ 
       # Handle *_change for method_missing.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
       end
-
+ 
       # Handle *_was for method_missing.
       def attribute_was(attr)
         attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
       end
-
+ 
       # Handle *_will_change! for method_missing.
       def attribute_will_change!(attr)
         changed_attributes[attr] = clone_attribute_value(:read_attribute, attr)
       end
-
+ 
       # Wrap write_attribute to remember original attribute value.
       def write_attribute_with_dirty(attr, value)
         attr = attr.to_s
-
+ 
         # The attribute already has an unsaved change.
         unless changed_attributes.include?(attr)
           old = clone_attribute_value(:read_attribute, attr)
-
+ 
           # Remember the original value if it's different.
           typecasted = if column = column_for_attribute(attr)
                          column.type_cast(value)
@@ -126,17 +155,16 @@ module ActiveRecord
                        end
           changed_attributes[attr] = old unless old == typecasted
         end
-
+ 
         # Carry on.
         write_attribute_without_dirty(attr, value)
       end
-
+ 
       def update_with_dirty
-        if partial_updates?
-          update_without_dirty(changed)
-        else
-          update_without_dirty
-        end
+        update_without_dirty(changed)
       end
   end
 end
+ 
+ActiveRecord::Base.send :include, ActiveRecord::Dirty
+#ActiveRecord::Base.partial_updates = true -- Now there is no way to disable this ugly partial updates hack
