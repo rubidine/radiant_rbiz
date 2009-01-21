@@ -27,5 +27,3 @@ _Getting Started_
 
 6. There are a couple of initializers that need to be copied over from radiant_rbiz to the radiant instance, so run the rake task.
   rake radiant:extensions:radiant_rbiz:initializers
-
-
