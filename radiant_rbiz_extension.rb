@@ -1,6 +1,3 @@
-# Uncomment this if you reference any of your controllers in activate
-require_dependency 'application'
-
 unless defined?(Dispatcher)
   require 'dispatcher'
 end
@@ -15,20 +12,15 @@ if ENV['RAILS_ENV'] == 'test'
   require 'mocha'
 end
 
+require 'will_paginate'
+
 class RadiantRbizExtension < Radiant::Extension
 
-  version "0.9"
+  version "1.0"
   description "Radiant integration for RBiz"
-  url "http://rubidine.com/rbiz"
-  
-#  define_routes do |map|
-    # THIS IS ALL DONE IN HUMMINGBIRD
-#  end
+  url "http://github.com/rubidine/rbiz"
   
   def activate
-
-    # Set view path for mailers
-#    CustomerNotifier.view_paths << File.join(CustomerNotifier.template_root, '..')
 
     # Add links to header on every page
     OfficeViewExtender.register '/common/header', :partial => 'office/radiant_nav'
@@ -38,8 +30,8 @@ class RadiantRbizExtension < Radiant::Extension
 
     # Protect from forgery and Radiant's use of ActiveRecordStore don't mix
     # maybe this has changed by 0.6.7 ?
-    CustomerController.send :skip_before_filter, :verify_authenticity_token
-    CartController.send :skip_before_filter, :verify_authenticity_token
+#    CustomerController.send :skip_before_filter, :verify_authenticity_token
+#    CartController.send :skip_before_filter, :verify_authenticity_token
 
     # Cart and customer don't need a radiant login
     CartController.send :no_login_required

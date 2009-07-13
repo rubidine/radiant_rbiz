@@ -22,6 +22,7 @@ module ExtensionRendersRadiant
     end
   end
 
+=begin
   # Do default check for file.
   # If no file, then check radiant.
   # Do not check layouts.
@@ -34,6 +35,7 @@ module ExtensionRendersRadiant
     page = Page.find_by_url(url) rescue nil
     return (page and !page.is_a?(FileNotFoundPage))
   end
+=end
 
   # render from radiant if possible.
   # return nil if false.
@@ -109,6 +111,6 @@ module ExtensionRendersRadiant
 
   def self.included(kls)
     kls.send :alias_method_chain, :render, :extension_renders_radiant
-    kls.send :alias_method_chain, :template_exists?, :extension_renders_radiant
+#    kls.send :alias_method_chain, :template_exists?, :extension_renders_radiant
   end
 end
